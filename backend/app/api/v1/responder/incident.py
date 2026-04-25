@@ -1,7 +1,6 @@
 """
 app/api/v1/responder/incident.py
 """
-
 from fastapi import APIRouter, Depends
 
 from app.core.dependencies import AnyStaff, DBDep

@@ -501,13 +501,9 @@ class Collection(StrEnum):
     PROTOCOLS = "protocols"
     CCTV_CAMERAS = "cctv_cameras"
     REFRESH_TOKENS = "refresh_tokens"
-    # New
-    GUESTS = "guests"
+
+    # New (only keep NON-duplicates)
     CHECKINS = "checkins"
-    ROOMS = "rooms"
     SOP_PROTOCOLS = "sop_protocols"
     RESPONDER_LOGS = "responder_logs"
-    BROADCASTS = "broadcasts"
-    INTEGRATIONS = "integrations"
     ADMIN_USERS = "admin_users"
-    CCTV_CAMERAS = "cctv_cameras"

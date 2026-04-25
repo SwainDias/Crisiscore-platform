@@ -34,6 +34,7 @@ api_router.include_router(guest_home_router)
 api_router.include_router(guest_checkin_router)
 api_router.include_router(guest_alert_router)
 
+
 # ── Staff ─────────────────────────────────────────────────────────────────────
 api_router.include_router(staff_auth_router)
 api_router.include_router(staff_home_router)
