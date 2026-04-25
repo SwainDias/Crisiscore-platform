@@ -67,7 +67,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (userType == null) {
-        if (isStaffRoute || isGuestRoute) {
+        if (!isAuthRoute && (isStaffRoute || isGuestRoute)) {
           return '/onboarding';
         }
         return null;
