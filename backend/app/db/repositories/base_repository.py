@@ -71,6 +71,15 @@ class BaseRepository:
         result = await self._col.delete_one(query)
         return result.deleted_count > 0
 
+    async def update_many(self, query: dict[str, Any], update: dict[str, Any]) -> int:
+        update.setdefault("$set", {})["updated_at"] = self._now()
+        result = await self._col.update_many(query, update)
+        return int(result.modified_count)
+
+    async def delete_many(self, query: dict[str, Any]) -> int:
+        result = await self._col.delete_many(query)
+        return int(result.deleted_count)
+
     async def count(self, query: dict[str, Any]) -> int:
         return await self._col.count_documents(query)
 

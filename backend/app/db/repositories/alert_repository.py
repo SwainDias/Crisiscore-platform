@@ -12,6 +12,9 @@ from app.db.repositories.base_repository import BaseRepository
 class AlertRepository(BaseRepository):
     collection_name = Collection.ALERTS
 
+    async def get_by_alert_id(self, alert_id: str) -> dict | None:
+        return await self.find_one({"alert_id": alert_id})
+
     async def get_recent_duplicate(
         self, user_id: str, type_id: str, window_minutes: int = 5
     ) -> dict | None:
