@@ -15,6 +15,7 @@ import '../../features/staff/screens/staff_home_screen.dart';
 import '../../features/staff/screens/staff_map_tab_screen.dart';
 import '../../features/staff/screens/staff_alerts_tab_screen.dart';
 import '../../features/staff/screens/staff_guide_tab_screen.dart';
+import '../../features/staff/screens/staff_account_tab_screen.dart';
 import '../../features/staff/screens/crisis_trigger_screen.dart';
 import '../../features/staff/screens/active_incident_screen.dart';
 import '../../features/staff/screens/post_incident_screen.dart';
@@ -33,6 +34,7 @@ final _staffHomeBranchKey = GlobalKey<NavigatorState>();
 final _staffMapBranchKey = GlobalKey<NavigatorState>();
 final _staffAlertsBranchKey = GlobalKey<NavigatorState>();
 final _staffGuideBranchKey = GlobalKey<NavigatorState>();
+final _staffAccountBranchKey = GlobalKey<NavigatorState>();
 
 final _guestHomeBranchKey = GlobalKey<NavigatorState>();
 final _guestAlertsBranchKey = GlobalKey<NavigatorState>();
@@ -165,6 +167,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+          StatefulShellBranch(
+            navigatorKey: _staffAccountBranchKey,
+            routes: [
+              GoRoute(
+                path: '/staff/account',
+                builder: (context, state) => const StaffAccountTabScreen(),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -243,6 +254,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // Guest full-screen routes (outside shell)
+      GoRoute(
+        path: '/guest/trigger',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CrisisTriggerScreen(),
+      ),
       GoRoute(
         path: '/guest/instructions',
         parentNavigatorKey: _rootNavigatorKey,

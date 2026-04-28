@@ -29,12 +29,22 @@ class _CrisisTriggerScreenState extends ConsumerState<CrisisTriggerScreen> {
       backgroundColor: AppColors.surface,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.menu),
           onPressed: () => context.pop(),
         ),
         title: Text('Raise an Alert',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.surfaceContainerHigh,
+              child: const Icon(Icons.person, size: 18, color: AppColors.onSurfaceVariant),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

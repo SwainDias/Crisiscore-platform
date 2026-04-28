@@ -18,7 +18,7 @@ class GuestHomeScreen extends ConsumerWidget {
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 16.0),
         child: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () => context.push('/guest/trigger'),
           backgroundColor: AppColors.primary,
           shape: const CircleBorder(),
           elevation: 4,

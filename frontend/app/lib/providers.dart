@@ -21,6 +21,12 @@ class UserTypeNotifier extends Notifier<String?> {
   void set(String? value) {
     state = value;
   }
+
+  Future<void> logout() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.remove(AppConstants.userTypeKey);
+    state = null;
+  }
 }
 
 final userTypeProvider = NotifierProvider<UserTypeNotifier, String?>(

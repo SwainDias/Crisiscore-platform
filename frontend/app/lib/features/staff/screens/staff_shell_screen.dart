@@ -48,6 +48,11 @@ class StaffShellScreen extends ConsumerWidget {
             selectedIcon: Icon(Icons.menu_book),
             label: 'Guide',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Account',
+          ),
         ],
       ),
     );
