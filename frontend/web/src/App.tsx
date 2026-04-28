@@ -5,16 +5,16 @@
 
 import React, { useState } from 'react';
 import Layout from './components/Layout';
-import Overview from './components/Overview';
-import LiveMap from './components/LiveMap';
-import IncidentHistory from './components/IncidentHistory';
-import ActiveIncidentDetail from './components/ActiveIncidentDetail';
-import StaffDirectory from './components/StaffDirectory';
-import SystemSettings from './components/SystemSettings';
-import DrillManagement from './components/DrillManagement';
+import Overview from './pages/Overview';
+import LiveMap from './pages/LiveMap';
+import IncidentHistory from './pages/IncidentHistory';
+import ActiveIncidentDetail from './pages/ActiveIncidentDetail';
+import StaffDirectory from './pages/StaffDirectory';
+import SystemSettings from './pages/SystemSettings';
+import DrillManagement from './pages/DrillManagement';
 
 export default function App() {
-  const [activeId, setActiveId] = useState('live-map');
+  const [activeId, setActiveId] = useState('overview');
 
   const renderContent = () => {
     switch (activeId) {
@@ -40,7 +40,7 @@ export default function App() {
              </div>
              <div className="text-center">
                 <h3 className="text-xl font-bold text-on-surface">Module Under Construction</h3>
-                <p className="text-on-surface-variant font-medium">This section of the ResQ Admin command center is currently being synchronized.</p>
+                <p className="text-on-surface-variant font-medium">This section of the CrisisCore Admin command center is currently being synchronized.</p>
              </div>
           </div>
         );

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Shield, Search, Clock, Bell, UserCircle, TriangleAlert } from 'lucide-react';
-import { NAV_ITEMS } from '../constants';
+import { NAV_ITEMS } from '../types/constants';
 import { cn } from '../lib/utils';
 
 interface LayoutProps {
@@ -20,7 +20,7 @@ export default function Layout({ children, activeId, onNavigate }: LayoutProps) 
             <Shield className="w-6 h-6 fill-current" />
           </div>
           <div>
-            <h1 className="font-sans text-xl font-bold tracking-tighter text-on-surface leading-tight">ResQ Admin</h1>
+            <h1 className="font-sans text-xl font-bold tracking-tighter text-on-surface leading-tight">CrisisCore Admin</h1>
             <p className="font-body text-[10px] uppercase font-bold tracking-widest text-on-surface-variant">Precision Command</p>
           </div>
         </div>

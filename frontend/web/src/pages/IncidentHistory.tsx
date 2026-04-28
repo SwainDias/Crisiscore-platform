@@ -30,20 +30,20 @@ const HISTOGRAM_DATA = [
 
 export default function IncidentHistory() {
   return (
-    <div className="space-y-8 font-sans pb-12">
+    <div className="space-y-6 font-sans pb-12">
       {/* Page Header */}
-      <div className="flex justify-between items-end mt-4">
+      <div className="flex justify-between items-center px-1">
         <div>
-          <h2 className="text-[36px] font-bold tracking-tight text-on-surface mb-1">Incident History & Analytics</h2>
-          <p className="text-on-surface-variant text-[15px]">Review historical response data, compliance metrics, and operational trends.</p>
+          <h2 className="text-[32px] font-bold tracking-tight text-on-surface">Incident History & Analytics</h2>
+          <p className="text-on-surface-variant text-[15px] mt-1">Review historical response data, compliance metrics, and operational trends.</p>
         </div>
         
-        <div className="bg-surface-container-low rounded-full p-1.5 flex gap-1 items-center">
+        <div className="bg-surface-container-low rounded-full p-1.5 flex gap-1 items-center shadow-sm border border-secondary/5">
           {['7D', '30D', '90D', 'YTD'].map((range) => (
             <button key={range} className={cn(
               "px-4 py-2 text-[13px] font-semibold rounded-full transition-all",
               range === '90D' 
-                ? "bg-primary-container text-on-surface" 
+                ? "bg-[#e8def8] text-on-surface" 
                 : "text-on-surface-variant hover:bg-black/5"
             )}>
               {range}

@@ -11,14 +11,14 @@ export default function DrillManagement() {
   const [activeTab, setActiveTab] = useState('Upcoming');
 
   return (
-    <div className="space-y-8 font-sans pb-12">
+    <div className="space-y-6 font-sans pb-12">
       {/* Page Header */}
-      <div className="flex justify-between items-end mt-4">
+      <div className="flex justify-between items-center px-1">
         <div>
-          <h1 className="text-[36px] font-bold tracking-tight text-on-surface mb-1">Drill Management</h1>
-          <p className="text-on-surface-variant text-[15px]">Coordinate and evaluate property-wide emergency preparedness.</p>
+          <h2 className="text-[32px] font-bold tracking-tight text-on-surface">Drill Management</h2>
+          <p className="text-on-surface-variant text-[15px] mt-1">Coordinate and evaluate property-wide emergency preparedness.</p>
         </div>
-        <button className="bg-primary text-white px-5 py-2.5 rounded-full font-medium text-[14px] flex items-center gap-2 hover:bg-[#5a4691] transition-colors shadow-sm">
+        <button className="bg-[#4a4458] text-white px-5 py-2.5 rounded-full font-bold text-[13px] flex items-center gap-2 hover:bg-[#322f3b] transition-colors shadow-sm uppercase tracking-wider">
           <Plus className="w-4 h-4" />
           Schedule New Drill
         </button>
