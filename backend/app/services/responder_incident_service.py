@@ -1,157 +1,214 @@
 """
 app/services/responder_incident_service.py
-Business logic for the first-responder incident command screen.
 """
 
 import uuid
 from datetime import UTC, datetime
 
-from app.core.constants import IncidentContainmentStatus, IncidentStatus, SOPStepStatus
+from app.core.constants import IncidentErrorCode, IncidentStatus, IncidentType, ResponderUnitStatus, SOPStepStatus
 from app.core.exceptions import NotFoundException
-from app.db.repositories.incident_repository import IncidentRepository
-from app.db.repositories.responder_repository import (
-    ResponderLogRepository,
-    SOPRepository,
-)
-from app.schemas.responder.responder import (
+from app.db.repositories.admin_repository import IncidentLogRepository
+from app.db.repositories.incident_command_repository import IncidentCommandRepository
+from app.schemas.responder.incident import (
     ActiveResponder,
-    BackupRequest,
-    BackupResponse,
+    BackupRequestResponse,
+    GeoCoordinates,
+    IncidentLocation,
     LogUpdateRequest,
+    LogUpdateResponse,
     ResolveRequest,
     ResolveResponse,
     ResponderIncidentResponse,
-    SOPProgress,
     SOPStep,
+    SOPSummary,
 )
 
 
 class ResponderIncidentService:
     def __init__(
         self,
-        incident_repo: IncidentRepository,
-        log_repo: ResponderLogRepository,
-        sop_repo: SOPRepository,
+        incident_repo: IncidentCommandRepository,
+        log_repo: IncidentLogRepository,
     ) -> None:
         self._incident_repo = incident_repo
         self._log_repo = log_repo
-        self._sop_repo = sop_repo
 
     async def get_incident(self, incident_id: str) -> ResponderIncidentResponse:
-        doc = await self._incident_repo.get_by_id(incident_id)
-        if not doc:
-            raise NotFoundException(message=f"Incident '{incident_id}' not found.")
+        incident = await self._incident_repo.get_by_incident_id(incident_id)
+        if not incident:
+            raise NotFoundException(
+                code=IncidentErrorCode.INCIDENT_NOT_FOUND,
+                message=f"Incident '{incident_id}' not found.",
+            )
 
-        sop = await self._build_sop(doc.get("type", "fire"))
-        responders = self._build_responders(doc.get("responder_assignments", []))
+        started_at_raw = incident.get("started_at") or incident.get("created_at")
+        started_at = self._to_datetime(started_at_raw)
+        elapsed_seconds = max(int((datetime.now(UTC) - started_at).total_seconds()), 0)
 
-        started_at = doc.get("created_at", datetime.now(UTC))
-        elapsed = int(
-            (datetime.now(UTC) - started_at.replace(tzinfo=UTC)).total_seconds()
-            if isinstance(started_at, datetime)
-            else 0
-        )
+        location_data = incident.get("location", {})
+        responders = self._to_responders(incident.get("responder_assignments", []))
+        sop = self._to_sop(incident.get("sop", {}))
 
         return ResponderIncidentResponse(
-            incident_id=incident_id,
-            incident_code=doc.get("event_code", "EVT-UNKNOWN"),
-            type=doc.get("type", "custom"),
-            status=doc.get("status", IncidentContainmentStatus.ACTIVE),
-            title=doc.get("title", ""),
-            description=doc.get("description", ""),
-            location={
-                "sector": doc.get("sector", ""),
-                "area_name": doc.get("area_name", ""),
-                "coordinates": doc.get("coordinates", {"lat": 0.0, "lng": 0.0}),
-            },
-            elapsed_seconds=elapsed,
-            started_at=(
-                started_at.isoformat()
-                if isinstance(started_at, datetime)
-                else str(started_at)
+            incident_id=incident.get("incident_id", incident_id),
+            incident_code=incident.get("incident_code", incident.get("event_code", "INC-UNKNOWN")),
+            type=incident.get("type", IncidentType.CUSTOM),
+            status=incident.get("status", IncidentStatus.ACTIVE),
+            title=incident.get("title", "Incident"),
+            description=incident.get("description", ""),
+            location=IncidentLocation(
+                sector=location_data.get("sector", "Unknown Sector"),
+                area_name=location_data.get("area_name", "Unknown Area"),
+                coordinates=GeoCoordinates(
+                    lat=float(location_data.get("coordinates", {}).get("lat", 0.0)),
+                    lng=float(location_data.get("coordinates", {}).get("lng", 0.0)),
+                ),
             ),
+            elapsed_seconds=elapsed_seconds,
+            started_at=started_at.isoformat(),
             active_responders=responders,
             sop=sop,
         )
 
-    async def log_update(self, request: LogUpdateRequest) -> dict:
-        doc = await self._incident_repo.get_by_id(request.incident_id)
-        if not doc:
-            raise NotFoundException(message="Incident not found.")
-
-        log_id = await self._log_repo.append_log(
-            incident_id=request.incident_id,
-            responder_id=request.responder_id,
-            note=request.note,
-            timestamp=datetime.fromisoformat(request.timestamp),
-        )
-        return {"success": True, "log_id": log_id}
-
-    async def resolve_incident(self, request: ResolveRequest) -> ResolveResponse:
-        doc = await self._incident_repo.get_by_id(request.incident_id)
-        if not doc:
-            raise NotFoundException(message="Incident not found.")
-
-        resolved_at = datetime.fromisoformat(request.timestamp)
-        await self._incident_repo.update_one(
-            {"_id": doc.get("_id")},
-            {
-                "$set": {
-                    "status": IncidentStatus.RESOLVED,
-                    "concluded_at": resolved_at,
-                    "resolved_by": request.resolved_by,
-                    "resolution_note": request.resolution_note,
-                }
-            },
-        )
-        return ResolveResponse(success=True, resolved_at=resolved_at.isoformat())
-
-    async def request_backup(self, request: BackupRequest) -> BackupResponse:
-        backup_id = str(uuid.uuid4())
-        # In production: fan out push notification to standby staff
-        return BackupResponse(success=True, backup_request_id=backup_id)
-
-    # ─── Helpers ─────────────────────────────────────────────────────────────
-
-    async def _build_sop(self, incident_type: str) -> SOPProgress:
-        protocol = await self._sop_repo.get_for_incident_type(incident_type)
-        if not protocol:
-            return SOPProgress(
-                protocol_name="Standard Protocol",
-                total_steps=0,
-                completed_steps=0,
-                steps=[],
+    async def request_backup(self, incident_id: str, responder_id: str) -> BackupRequestResponse:
+        incident = await self._incident_repo.get_by_incident_id(incident_id)
+        if not incident:
+            raise NotFoundException(
+                code=IncidentErrorCode.INCIDENT_NOT_FOUND,
+                message=f"Incident '{incident_id}' not found.",
             )
 
-        raw_steps = protocol.get("steps", [])
+        backup_request_id = str(uuid.uuid4())
+        timestamp = datetime.now(UTC).isoformat()
+        await self._incident_repo.append_log(
+            incident_id,
+            {
+                "event_id": backup_request_id,
+                "timestamp": timestamp,
+                "title": "Backup requested",
+                "description": f"Responder {responder_id} requested additional support.",
+                "icon_type": "alert",
+            },
+        )
+
+        await self._log_repo.create_log(
+            incident_id,
+            {
+                "log_id": backup_request_id,
+                "actor_id": responder_id,
+                "note": "Requested backup support",
+                "timestamp": timestamp,
+            },
+        )
+
+        return BackupRequestResponse(success=True, backup_request_id=backup_request_id)
+
+    async def log_update(self, incident_id: str, request: LogUpdateRequest) -> LogUpdateResponse:
+        incident = await self._incident_repo.get_by_incident_id(incident_id)
+        if not incident:
+            raise NotFoundException(
+                code=IncidentErrorCode.INCIDENT_NOT_FOUND,
+                message=f"Incident '{incident_id}' not found.",
+            )
+
+        log_id = str(uuid.uuid4())
+        await self._incident_repo.append_log(
+            incident_id,
+            {
+                "event_id": log_id,
+                "timestamp": request.timestamp,
+                "title": "Responder update",
+                "description": request.note,
+                "icon_type": "person",
+            },
+        )
+
+        await self._log_repo.create_log(
+            incident_id,
+            {
+                "log_id": log_id,
+                "responder_id": request.responder_id,
+                "note": request.note,
+                "timestamp": request.timestamp,
+            },
+        )
+
+        return LogUpdateResponse(success=True, log_id=log_id)
+
+    async def resolve(self, incident_id: str, request: ResolveRequest) -> ResolveResponse:
+        incident = await self._incident_repo.get_by_incident_id(incident_id)
+        if not incident:
+            raise NotFoundException(
+                code=IncidentErrorCode.INCIDENT_NOT_FOUND,
+                message=f"Incident '{incident_id}' not found.",
+            )
+
+        resolved_at = self._to_datetime(request.timestamp)
+        await self._incident_repo.set_status(
+            incident_id=incident_id,
+            status=IncidentStatus.RESOLVED,
+            timestamp=resolved_at,
+            resolved_by=request.resolved_by,
+            resolution_note=request.resolution_note,
+        )
+
+        await self._log_repo.create_log(
+            incident_id,
+            {
+                "log_id": str(uuid.uuid4()),
+                "actor_id": request.resolved_by,
+                "note": f"Incident resolved: {request.resolution_note}",
+                "timestamp": request.timestamp,
+            },
+        )
+
+        return ResolveResponse(success=True, resolved_at=resolved_at.isoformat())
+
+    @staticmethod
+    def _to_responders(items: list[dict]) -> list[ActiveResponder]:
+        responders: list[ActiveResponder] = []
+        for row in items:
+            responders.append(
+                ActiveResponder(
+                    responder_id=row.get("employee_id", "unknown"),
+                    unit_label=row.get("unit_label", row.get("team", "Unit")),
+                    name=row.get("name", "Responder"),
+                    status=row.get("status", ResponderUnitStatus.DISPATCHED),
+                    eta_seconds=row.get("eta_seconds"),
+                )
+            )
+        return responders
+
+    @staticmethod
+    def _to_sop(raw: dict) -> SOPSummary:
+        steps_raw = raw.get("steps", [])
         steps = [
             SOPStep(
-                step_id=s.get("step_id", str(i)),
-                order=i + 1,
-                title=s["title"],
+                step_id=s.get("step_id", f"step-{idx + 1}"),
+                order=int(s.get("order", idx + 1)),
+                title=s.get("title", f"Step {idx + 1}"),
                 description=s.get("description"),
                 status=s.get("status", SOPStepStatus.PENDING),
                 completed_at=s.get("completed_at"),
             )
-            for i, s in enumerate(raw_steps)
+            for idx, s in enumerate(steps_raw)
         ]
-        completed = sum(1 for s in steps if s.status == SOPStepStatus.COMPLETED)
 
-        return SOPProgress(
-            protocol_name=protocol.get("name", "Standard Protocol"),
-            total_steps=len(steps),
-            completed_steps=completed,
+        completed_steps = sum(1 for s in steps if s.status == SOPStepStatus.COMPLETED)
+        total_steps = raw.get("total_steps", len(steps))
+
+        return SOPSummary(
+            protocol_name=raw.get("protocol_name", "Standard Incident Response"),
+            total_steps=total_steps,
+            completed_steps=raw.get("completed_steps", completed_steps),
             steps=steps,
         )
 
-    def _build_responders(self, raw: list[dict]) -> list[ActiveResponder]:
-        return [
-            ActiveResponder(
-                responder_id=r.get("employee_id", ""),
-                unit_label=r.get("unit_label", "Unit"),
-                name=r.get("name", ""),
-                status=r.get("status", "standby"),
-                eta_seconds=r.get("eta_seconds"),
-            )
-            for r in raw
-        ]
+    @staticmethod
+    def _to_datetime(value: object | None) -> datetime:
+        if isinstance(value, datetime):
+            return value if value.tzinfo else value.replace(tzinfo=UTC)
+        if isinstance(value, str):
+            parsed = datetime.fromisoformat(value)
+            return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+        return datetime.now(UTC)

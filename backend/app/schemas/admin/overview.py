@@ -3,14 +3,11 @@ app/schemas/admin/overview.py
 """
 
 from pydantic import BaseModel
-from app.core.constants import (
-    IncidentPriority,
-    IncidentStatus,
-    StaffOperationalStatus,
-)
+
+from app.core.constants import CrisisPriority, IncidentPinType, IncidentQueueStatus, ResponderUnitStatus
 
 
-class PropertyInfo(BaseModel):
+class PropertySummary(BaseModel):
     property_id: str
     name: str
     server_time: str
@@ -20,13 +17,13 @@ class ActiveIncidentBanner(BaseModel):
     present: bool
     incident_id: str | None = None
     title: str | None = None
-    severity: IncidentPriority | None = None
+    severity: CrisisPriority | None = None
     responders_deployed: int | None = None
     guests_in_zone: int | None = None
     cta_route: str | None = None
 
 
-class AdminKPIs(BaseModel):
+class OverviewKPIs(BaseModel):
     staff_on_duty: int
     active_incidents: int
     guests_tracked: int
@@ -37,7 +34,7 @@ class IncidentPin(BaseModel):
     lat: float | None = None
     lng: float | None = None
     floor: int | None = None
-    type: str | None = None
+    type: IncidentPinType | None = None
 
 
 class LiveMapSummary(BaseModel):
@@ -51,21 +48,21 @@ class ActiveResponderCard(BaseModel):
     name: str
     initials: str
     role: str
-    status: StaffOperationalStatus
+    status: ResponderUnitStatus
 
 
 class IncidentQueueItem(BaseModel):
     incident_id: str
     title: str
     location: str
-    status: IncidentStatus
+    status: IncidentQueueStatus
     age_seconds: int
 
 
 class AdminOverviewResponse(BaseModel):
-    property: PropertyInfo
+    property: PropertySummary
     active_incident_banner: ActiveIncidentBanner
-    kpis: AdminKPIs
+    kpis: OverviewKPIs
     live_map_summary: LiveMapSummary
     active_responders: list[ActiveResponderCard]
     incident_queue: list[IncidentQueueItem]

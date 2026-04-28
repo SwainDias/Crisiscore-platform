@@ -2,12 +2,15 @@
 app/schemas/admin/map.py
 """
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 from app.core.constants import (
-    IncidentPriority,
-    IncidentType,
-    StaffOperationalStatus,
+    BroadcastAudience,
+    CrisisPriority,
+    IncidentPinType,
+    StaffDirectoryStatus,
 )
 
 
@@ -18,56 +21,66 @@ class MapSummary(BaseModel):
     live_feed_syncing: bool
 
 
-class StaffLocationPin(BaseModel):
+class StaffLocation(BaseModel):
     employee_id: str
     lat: float
     lng: float
     floor: int
-    status: StaffOperationalStatus
+    status: Literal[
+        StaffDirectoryStatus.AVAILABLE,
+        StaffDirectoryStatus.RESPONDING,
+        StaffDirectoryStatus.UNRESPONSIVE,
+    ]
 
 
-class GuestHeatmapZone(BaseModel):
+class GuestHeatmapPoint(BaseModel):
     zone_id: str
     lat: float
     lng: float
     count: int
 
 
-class IncidentMapPin(BaseModel):
+class ActiveIncidentMapPoint(BaseModel):
     incident_id: str
     lat: float
     lng: float
-    type: IncidentType
-    severity: IncidentPriority
+    type: IncidentPinType
+    severity: CrisisPriority
 
 
-class CCTVCamera(BaseModel):
+class CCTVCameraPoint(BaseModel):
     camera_id: str
     lat: float
     lng: float
     floor: int
     stream_url: str | None = None
-    status: str  # "active" | "offline"
+    status: Literal["active", "offline"]
 
 
 class MapLayers(BaseModel):
-    staff_locations: list[StaffLocationPin]
-    guest_heatmap: list[GuestHeatmapZone]
-    active_incidents: list[IncidentMapPin]
-    cctv_cameras: list[CCTVCamera]
+    staff_locations: list[StaffLocation]
+    guest_heatmap: list[GuestHeatmapPoint]
+    active_incidents: list[ActiveIncidentMapPoint]
+    cctv_cameras: list[CCTVCameraPoint]
+
+
+class IncidentCardLocation(BaseModel):
+    floor: int
+    room: str
+    sector: str
+
+
+class ClosestStaff(BaseModel):
+    name: str
+    role: str
 
 
 class DispatchedUnit(BaseModel):
     employee_id: str
     name: str
     avatar_url: str | None = None
-    status: str
+    status: Literal["en_route", "on_scene"]
     eta_seconds: int | None = None
-
-
-class ClosestStaff(BaseModel):
-    name: str
-    role: str
 
 
 class ActiveIncidentCard(BaseModel):
@@ -76,14 +89,14 @@ class ActiveIncidentCard(BaseModel):
     incident_code: str
     auto_triggered: bool
     elapsed_seconds: int
-    location: dict
-    sensor_status: str
+    location: IncidentCardLocation
+    sensor_status: Literal["active", "inactive"]
     proximity_guests: int
     closest_staff: ClosestStaff
     dispatched_units: list[DispatchedUnit]
 
 
-class MapDataResponse(BaseModel):
+class AdminMapDataResponse(BaseModel):
     property_id: str
     floor: int
     floors_available: list[int]
@@ -111,15 +124,15 @@ class EscalateRequest(BaseModel):
 
 class EscalateResponse(BaseModel):
     success: bool
-    new_severity: IncidentPriority
+    new_severity: CrisisPriority
 
 
 class BroadcastRequest(BaseModel):
     incident_id: str
-    audience: str  # all_guests | affected_floor | specific_room
+    audience: BroadcastAudience
     room_id: str | None = None
     message: str
-    channels: list[str]
+    channels: list[Literal["app_push", "whatsapp", "sms"]]
     sent_by: str
 
 

@@ -17,6 +17,10 @@ class IncidentRepository(BaseRepository):
         )
 
     async def get_by_id(self, incident_id: str) -> dict | None:
+        doc = await self.find_one({"incident_id": incident_id})
+        if doc:
+            return doc
+
         from bson import ObjectId
         try:
             oid = ObjectId(incident_id)
@@ -25,6 +29,10 @@ class IncidentRepository(BaseRepository):
         return await self.find_one({"_id": oid})
 
     async def get_resolved_by_id(self, incident_id: str) -> dict | None:
+        doc = await self.find_one({"incident_id": incident_id, "status": IncidentStatus.RESOLVED})
+        if doc:
+            return doc
+
         from bson import ObjectId
         try:
             oid = ObjectId(incident_id)
@@ -43,8 +51,20 @@ class IncidentRepository(BaseRepository):
         )
 
     async def resolve(self, incident_id: str, concluded_at) -> bool:
+        updated = await self.update_one(
+            {"incident_id": incident_id},
+            {"$set": {"status": IncidentStatus.RESOLVED, "concluded_at": concluded_at}},
+        )
+        if updated:
+            return True
+
         from bson import ObjectId
+        try:
+            oid = ObjectId(incident_id)
+        except Exception:
+            return False
+
         return await self.update_one(
-            {"_id": ObjectId(incident_id)},
+            {"_id": oid},
             {"$set": {"status": IncidentStatus.RESOLVED, "concluded_at": concluded_at}},
         )

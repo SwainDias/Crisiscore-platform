@@ -4,29 +4,10 @@ app/schemas/admin/staff_directory.py
 
 from pydantic import BaseModel
 
-from app.core.constants import StaffOperationalStatus
+from app.core.constants import StaffDirectoryStatus
 
 
-class StaffAssignment(BaseModel):
-    label: str
-    floor: int | None = None
-    zone: str | None = None
-
-
-class StaffDirectoryEntry(BaseModel):
-    employee_id: str
-    name: str
-    phone: str
-    avatar_url: str | None = None
-    role: str
-    role_id: str
-    assignment: StaffAssignment
-    last_seen_at: str
-    status: StaffOperationalStatus
-    response_time_seconds: int | None = None
-
-
-class DirectorySummary(BaseModel):
+class StaffDirectorySummary(BaseModel):
     total: int
     on_shift: int
     unresponsive: int
@@ -38,30 +19,49 @@ class UnresponsiveAlert(BaseModel):
     message: str | None = None
 
 
-class Pagination(BaseModel):
+class StaffAssignment(BaseModel):
+    label: str
+    floor: int | None = None
+    zone: str | None = None
+
+
+class StaffDirectoryMember(BaseModel):
+    employee_id: str
+    name: str
+    phone: str
+    avatar_url: str | None = None
+    role: str
+    role_id: str
+    assignment: StaffAssignment
+    last_seen_at: str
+    status: StaffDirectoryStatus
+    response_time_seconds: int | None = None
+
+
+class StaffPagination(BaseModel):
     page: int
     limit: int
     total_pages: int
 
 
-class RoleFilterOption(BaseModel):
+class FilterRoleOption(BaseModel):
     label: str
     value: str
     count: int
 
 
-class FilterOptions(BaseModel):
-    roles: list[RoleFilterOption]
+class StaffFilterOptions(BaseModel):
+    roles: list[FilterRoleOption]
     statuses: list[str]
     floors: list[int]
 
 
-class StaffDirectoryResponse(BaseModel):
-    summary: DirectorySummary
+class StaffDirectoryListResponse(BaseModel):
+    summary: StaffDirectorySummary
     unresponsive_alert: UnresponsiveAlert
-    staff: list[StaffDirectoryEntry]
-    pagination: Pagination
-    filter_options: FilterOptions
+    staff: list[StaffDirectoryMember]
+    pagination: StaffPagination
+    filter_options: StaffFilterOptions
 
 
 class StaffImportResponse(BaseModel):
