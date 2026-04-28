@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../core/theme/colors.dart';
 
@@ -25,129 +25,103 @@ class ResQMapWidget extends StatefulWidget {
 class _ResQMapWidgetState extends State<ResQMapWidget> {
   static const _center = LatLng(19.0760, 72.8777);
 
-  String? _mapStyle;
-  late Set<Marker> _markers;
-  late Set<Polyline> _polylines;
-
   @override
-  void initState() {
-    super.initState();
-    _markers = _buildMarkers();
-    _polylines = _buildPolylines();
-    _loadMapStyle();
-  }
-
-  @override
-  void didUpdateWidget(covariant ResQMapWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.showIncidentPin != widget.showIncidentPin ||
-        oldWidget.showStaffDots != widget.showStaffDots ||
-        oldWidget.showEvacRoute != widget.showEvacRoute) {
-      setState(() {
-        _markers = _buildMarkers();
-        _polylines = _buildPolylines();
-      });
-    }
-  }
-
-  Future<void> _loadMapStyle() async {
-    final style = await rootBundle.loadString('assets/map_style_dark.json');
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _mapStyle = style;
-    });
-  }
-
-  Set<Marker> _buildMarkers() {
-    final markers = <Marker>{};
+  Widget build(BuildContext context) {
+    final List<Marker> markers = [];
 
     if (widget.showIncidentPin) {
       markers.add(
-        Marker(
-          markerId: const MarkerId('incident'),
-          position: const LatLng(19.0767, 72.8780),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueRed,
-          ),
-          infoWindow: const InfoWindow(title: 'Active Incident'),
+        const Marker(
+          point: LatLng(19.0767, 72.8780),
+          width: 40,
+          height: 40,
+          child: Icon(Icons.location_on, color: AppColors.error, size: 40),
         ),
       );
     }
 
     if (widget.showStaffDots) {
-      markers.addAll(
-        [
-          Marker(
-            markerId: const MarkerId('staff_1'),
-            position: const LatLng(19.0758, 72.8769),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueAzure,
-            ),
-          ),
-          Marker(
-            markerId: const MarkerId('staff_2'),
-            position: const LatLng(19.0762, 72.8775),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueAzure,
-            ),
-          ),
-          Marker(
-            markerId: const MarkerId('staff_3'),
-            position: const LatLng(19.0764, 72.8786),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueAzure,
-            ),
-          ),
-        ],
+      markers.addAll([
+        const Marker(
+          point: LatLng(19.0758, 72.8769),
+          width: 24,
+          height: 24,
+          child: _StaffDot(),
+        ),
+        const Marker(
+          point: LatLng(19.0762, 72.8775),
+          width: 24,
+          height: 24,
+          child: _StaffDot(),
+        ),
+        const Marker(
+          point: LatLng(19.0764, 72.8786),
+          width: 24,
+          height: 24,
+          child: _StaffDot(),
+        ),
+      ]);
+    }
+
+    final List<Polyline> polylines = [];
+    if (widget.showEvacRoute) {
+      polylines.add(
+        Polyline(
+          points: const [
+            LatLng(19.0757, 72.8768),
+            LatLng(19.0761, 72.8774),
+            LatLng(19.0764, 72.8779),
+            LatLng(19.0768, 72.8785),
+          ],
+          strokeWidth: 5,
+          color: AppColors.safeGreen,
+        ),
       );
     }
 
-    return markers;
-  }
-
-  Set<Polyline> _buildPolylines() {
-    if (!widget.showEvacRoute) {
-      return const <Polyline>{};
-    }
-
-    return {
-      const Polyline(
-        polylineId: PolylineId('evac_route'),
-        color: AppColors.safeGreen,
-        width: 5,
-        points: [
-          LatLng(19.0757, 72.8768),
-          LatLng(19.0761, 72.8774),
-          LatLng(19.0764, 72.8779),
-          LatLng(19.0768, 72.8785),
-        ],
+    final map = FlutterMap(
+      options: MapOptions(
+        initialCenter: _center,
+        initialZoom: 17,
+        interactionOptions: InteractionOptions(
+          flags: widget.interactive ? InteractiveFlag.all : InteractiveFlag.none,
+        ),
       ),
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final map = GoogleMap(
-      initialCameraPosition: const CameraPosition(
-        target: _center,
-        zoom: 17,
-      ),
-      myLocationEnabled: false,
-      myLocationButtonEnabled: false,
-      mapToolbarEnabled: false,
-      zoomControlsEnabled: false,
-      compassEnabled: false,
-      style: _mapStyle,
-      markers: _markers,
-      polylines: _polylines,
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.crisiscore.app',
+        ),
+        if (polylines.isNotEmpty) PolylineLayer(polylines: polylines),
+        if (markers.isNotEmpty) MarkerLayer(markers: markers),
+      ],
     );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
-      child: widget.interactive ? map : AbsorbPointer(child: map),
+      child: map,
+    );
+  }
+}
+
+class _StaffDot extends StatelessWidget {
+  const _StaffDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 8,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
     );
   }
 }
