@@ -95,7 +95,7 @@ export default function Layout({ children, activeId, onNavigate }: LayoutProps) 
           </div>
         </header>
 
-        <main className="flex-1 mt-16 p-8 min-h-[calc(100vh-4rem)] relative overflow-x-hidden">
+        <main className={cn("flex-1 mt-16 min-h-[calc(100vh-4rem)] relative overflow-x-hidden", activeId === 'live-map' ? "p-0" : "p-8")}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeId}
