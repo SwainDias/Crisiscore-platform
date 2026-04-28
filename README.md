@@ -132,15 +132,16 @@ The platform is built as two independently deployable units: a **Flutter app** (
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                        Flutter Frontend                              │
+│                         Frontend                                     │
 │                                                                      │
-│  ┌────────────────────┐          ┌─────────────────────────────┐    │
-│  │   Mobile App       │          │        Web App              │    │
-│  │  iOS  ·  Android   │          │   Browser (flutter web)     │    │
+│  ┌────────────────────┐          ┌─────────────────────────────┐     │
+│  │   Mobile App       |          |                             |    
+       (FLUTTER)        │          │        Web App              │     │
+│  │  iOS  ·  Android   │          │      React +tailwind        │
 │  └────────┬───────────┘          └──────────────┬──────────────┘    │
-│           │                                     │                    │
+│           │                                     │                   |
 │   ┌───────┴─────────────────────────────────────┴──────┐            │
-│   │               Shared Dart Codebase                 │            │
+│   │                                                    │            │
 │   │  Guest App · Staff App · Responder · Admin Panel   │            │
 │   │  Riverpod state · go_router · flutter_map          │            │
 │   └───────────────────────────┬────────────────────────┘            │
