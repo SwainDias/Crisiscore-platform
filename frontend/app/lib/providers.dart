@@ -30,7 +30,7 @@ final userTypeProvider = NotifierProvider<UserTypeNotifier, String?>(
 // ── Active Incident Provider ──
 class ActiveIncidentNotifier extends Notifier<bool> {
   @override
-  bool build() => false;
+  bool build() => true;
 
   void setActive(bool value) => state = value;
 }

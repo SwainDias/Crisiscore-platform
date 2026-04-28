@@ -15,25 +15,14 @@ class GuestHomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      floatingActionButton: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [AppColors.primary, AppColors.primaryContainer],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(color: AppColors.onSurface.withValues(alpha: 0.15), blurRadius: 40, offset: const Offset(0, 10)),
-          ],
-        ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
         child: FloatingActionButton(
           onPressed: () {},
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: const Icon(Icons.sos, color: Colors.white, size: 32),
+          backgroundColor: AppColors.primary,
+          shape: const CircleBorder(),
+          elevation: 4,
+          child: const Text('SOS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
         ),
       ),
       body: CustomScrollView(
@@ -42,10 +31,10 @@ class GuestHomeScreen extends ConsumerWidget {
           SliverAppBar(
             pinned: true,
             floating: true,
-            backgroundColor: AppColors.surface.withValues(alpha: 0.7),
+            backgroundColor: AppColors.surface.withValues(alpha: 0.9),
             automaticallyImplyLeading: false,
             title: Text('Emergency Response',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             leading: IconButton(
               icon: const Icon(Icons.menu),
               onPressed: () {},
@@ -54,43 +43,42 @@ class GuestHomeScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: CircleAvatar(
-                  radius: 18,
+                  radius: 16,
                   backgroundColor: AppColors.surfaceContainerHigh,
-                  child: const Icon(Icons.person, size: 20, color: AppColors.onSurfaceVariant),
+                  child: const Icon(Icons.person, size: 18, color: AppColors.onSurfaceVariant),
                 ),
               ),
             ],
           ),
 
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const SizedBox(height: 8),
-
                 // Welcome hero
                 RichText(
                   text: TextSpan(
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700, height: 1.2),
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.onSurface, height: 1.1),
                     children: [
                       const TextSpan(text: 'Stay Safe,\n'),
                       TextSpan(
                         text: '${mockGuest.name}.',
-                        style: TextStyle(
-                          foreground: Paint()
-                            ..shader = const LinearGradient(
-                              colors: [AppColors.primary, AppColors.primaryContainer],
-                            ).createShader(const Rect.fromLTWH(0, 0, 200, 50)),
-                        ),
+                        style: const TextStyle(color: AppColors.primary),
                       ),
                     ],
                   ),
                 ).animate().fadeIn(duration: 500.ms),
 
-                const SizedBox(height: 12),
-                Text(
-                  'You are currently checked into ${mockGuest.hotel}. Your safety is our priority.',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.onSurfaceVariant, height: 1.5),
+                const SizedBox(height: 16),
+                RichText(
+                  text: TextSpan(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant, height: 1.5),
+                    children: [
+                      const TextSpan(text: 'You are currently checked into '),
+                      TextSpan(text: mockGuest.hotel, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                      const TextSpan(text: '. Your safety is our priority.'),
+                    ],
+                  ),
                 ).animate().fadeIn(delay: 100.ms),
 
                 const SizedBox(height: 24),
@@ -98,124 +86,113 @@ class GuestHomeScreen extends ConsumerWidget {
                 // Active alert card
                 if (hasActive)
                   Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppColors.errorContainer,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(color: AppColors.error.withValues(alpha: 0.1), blurRadius: 40, offset: const Offset(0, 20)),
-                      ],
+                      color: AppColors.errorContainer.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(32),
                     ),
-                    child: Row(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
+                          width: 48,
+                          height: 48,
+                          decoration: const BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.error,
-                            boxShadow: [BoxShadow(color: AppColors.error.withValues(alpha: 0.2), blurRadius: 20)],
+                            color: AppColors.onErrorContainer,
                           ),
-                          child: const Icon(Icons.campaign, color: Colors.white, size: 28),
+                          child: const Icon(Icons.campaign, color: Colors.white, size: 24),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text('ACTIVE ALERT',
-                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                            color: AppColors.error,
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 1.5,
-                                          )),
-                                  const SizedBox(width: 8),
-                                  const PulseIndicator(color: AppColors.error, size: 6),
-                                ],
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Text('ACTIVE ALERT',
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      color: AppColors.onErrorContainer,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.2,
+                                    )),
+                            const SizedBox(width: 8),
+                            const PulseIndicator(color: AppColors.error, size: 6),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Severe Weather\nWarning',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: AppColors.onErrorContainer,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.2,
+                                )),
+                        const SizedBox(height: 12),
+                        Text(
+                          'A severe thunderstorm warning has been issued for your area. Please remain indoors and stay away from windows until the all-clear is given.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.onErrorContainer.withValues(alpha: 0.9),
+                                height: 1.5,
                               ),
-                              const SizedBox(height: 8),
-                              Text('Severe Weather Warning',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        color: AppColors.onErrorContainer,
-                                        fontWeight: FontWeight.w700,
-                                      )),
-                              const SizedBox(height: 8),
-                              Text(
-                                'A severe thunderstorm warning has been issued. Please remain indoors.',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: AppColors.onErrorContainer.withValues(alpha: 0.9),
-                                      height: 1.4,
-                                    ),
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: FilledButton(
-                                  onPressed: () => context.push('/guest/instructions'),
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: AppColors.error,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text('View Details'),
-                                      const SizedBox(width: 8),
-                                      const Icon(Icons.arrow_forward, size: 18),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: () => context.push('/guest/instructions'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.onErrorContainer,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('View Details', style: TextStyle(fontWeight: FontWeight.w600)),
+                                SizedBox(width: 8),
+                                Icon(Icons.arrow_forward, size: 18),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 32),
 
                 // Quick Actions
                 Text('Quick Actions',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 16),
 
-                SizedBox(
-                  height: 200,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _ActionCard(
-                        icon: Icons.phone_in_talk,
-                        iconColor: AppColors.primary,
-                        title: 'Call for Help',
-                        subtitle: 'Connect with emergency services or hotel security.',
-                      ).animate().fadeIn(delay: 300.ms),
-                      const SizedBox(width: 12),
-                      _ActionCard(
-                        icon: Icons.meeting_room,
-                        iconColor: AppColors.onSecondaryContainer,
-                        iconBg: AppColors.secondaryContainer.withValues(alpha: 0.3),
-                        title: 'Exit Routes',
-                        subtitle: 'View the fastest evacuation paths from your room.',
-                      ).animate().fadeIn(delay: 350.ms),
-                      const SizedBox(width: 12),
-                      _ActionCard(
-                        icon: Icons.verified_user,
-                        iconColor: AppColors.tertiary,
-                        iconBg: AppColors.tertiaryContainer.withValues(alpha: 0.2),
-                        title: 'Safe Zones',
-                        subtitle: 'Locate designated assembly areas.',
-                      ).animate().fadeIn(delay: 400.ms),
-                    ],
-                  ),
+                Column(
+                  children: [
+                    _ActionCard(
+                      icon: Icons.phone_in_talk,
+                      iconColor: AppColors.primary,
+                      iconBg: AppColors.primaryContainer.withValues(alpha: 0.3),
+                      title: 'Call for Help',
+                      subtitle: 'Instantly connect with emergency services or hotel security.',
+                    ).animate().fadeIn(delay: 300.ms),
+                    const SizedBox(height: 12),
+                    _ActionCard(
+                      icon: Icons.meeting_room,
+                      iconColor: AppColors.primary,
+                      iconBg: AppColors.primaryContainer.withValues(alpha: 0.3),
+                      title: 'Exit Routes',
+                      subtitle: 'View the fastest and safest evacuation paths from your room.',
+                    ).animate().fadeIn(delay: 350.ms),
+                    const SizedBox(height: 12),
+                    _ActionCard(
+                      icon: Icons.verified_user,
+                      iconColor: AppColors.onSurfaceVariant,
+                      iconBg: AppColors.surfaceVariant,
+                      title: 'Safe Zones',
+                      subtitle: 'Locate designated assembly areas within the property.',
+                    ).animate().fadeIn(delay: 400.ms),
+                  ],
                 ),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 32),
 
                 // Information Hub
                 Row(
@@ -227,8 +204,9 @@ class GuestHomeScreen extends ConsumerWidget {
                       onPressed: () {},
                       child: Row(
                         children: [
-                          Text('See All', style: TextStyle(color: AppColors.primary)),
-                          const Icon(Icons.arrow_forward, size: 14, color: AppColors.primary),
+                          const Text('See All', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.arrow_forward, size: 16, color: AppColors.primary),
                         ],
                       ),
                     ),
@@ -236,13 +214,13 @@ class GuestHomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
 
-                _InfoHubCard(icon: Icons.fire_extinguisher, category: 'PROTOCOL', title: 'Fire Safety Procedures',
-                    subtitle: 'Review what to do in case of a fire alarm.').animate().fadeIn(delay: 500.ms),
+                _InfoHubCard(icon: Icons.local_fire_department, category: 'PROTOCOL', title: 'Fire Safety Procedures',
+                    subtitle: 'Review what to do in case of...').animate().fadeIn(delay: 500.ms),
                 const SizedBox(height: 12),
-                _InfoHubCard(icon: Icons.health_and_safety, category: 'RESOURCES', title: 'First Aid Locations',
-                    subtitle: 'Find nearby medical kits and AEDs.').animate().fadeIn(delay: 550.ms),
+                _InfoHubCard(icon: Icons.medical_services, category: 'RESOURCES', title: 'First Aid Locations',
+                    subtitle: 'Find nearby medical kits and...').animate().fadeIn(delay: 550.ms),
 
-                const SizedBox(height: 80),
+                const SizedBox(height: 100),
               ]),
             ),
           ),
@@ -270,12 +248,11 @@ class _ActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 200,
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+        borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,13 +266,11 @@ class _ActionCard extends StatelessWidget {
             ),
             child: Icon(icon, color: iconColor, size: 24),
           ),
-          const Spacer(),
-          Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
+          const SizedBox(height: 16),
+          Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
           Text(subtitle,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceVariant)),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant, height: 1.4)),
         ],
       ),
     );
@@ -316,19 +291,18 @@ class _InfoHubCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
               color: AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 28),
+            child: Icon(icon, color: AppColors.primary, size: 36),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -338,16 +312,16 @@ class _InfoHubCard extends StatelessWidget {
                 Text(category,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 1.5,
                         )),
                 const SizedBox(height: 4),
-                Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 2),
+                Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
                 Text(subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceVariant)),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant)),
               ],
             ),
           ),
@@ -356,3 +330,4 @@ class _InfoHubCard extends StatelessWidget {
     );
   }
 }
+
